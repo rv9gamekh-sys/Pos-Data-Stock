@@ -2,11 +2,9 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <!-- Meta Tag សម្រាប់ធ្វើឱ្យ Mobile Fit ទំហំអេក្រង់ iPhone ស្អាត 100% -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>POS & Inventory Management</title>
+    <title>Stock Management System</title>
     
-    <!-- App Mobile Styling -->
     <style>
         * {
             box-sizing: border-box;
@@ -17,52 +15,244 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f8fafc;
-            color: #1e293b;
-            padding: 12px;
-            max-width: 100vw;
-            overflow-x: hidden;
+            background-color: #0f172a;
+            color: #334155;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
         }
 
-        header {
-            background: #0f766e;
-            color: white;
-            padding: 16px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        /* Top Header Navigation */
+        .app-header {
+            background-color: #0f172a;
+            color: #ffffff;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1e293b;
         }
 
-        header h1 {
-            font-size: 1.2rem;
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
             font-weight: 700;
         }
 
+        .btn-settings-menu {
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Main Container */
         main.container {
-            width: 100%;
+            padding: 16px;
             max-width: 600px;
             margin: 0 auto;
+            background-color: #f8fafc;
+            min-height: calc(100vh - 65px);
         }
 
         .section-card {
+            display: none;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .section-card.active {
             display: block;
+        }
+
+        /* Dashboard Summary Cards */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .dash-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #0284c7;
+        }
+
+        .dash-card.green {
+            border-left-color: #10b981;
+        }
+
+        .dash-card span {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .dash-card h2 {
+            font-size: 1.5rem;
+            color: #0f172a;
+            margin-top: 4px;
+        }
+
+        /* Modal / Settings Navigation Dropdown */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-header h4 {
+            font-size: 1.1rem;
+            color: #0f172a;
+        }
+
+        .btn-close-modal {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #64748b;
+            cursor: pointer;
+        }
+
+        .sub-menu {
+            list-style: none;
+        }
+
+        .sub-menu li {
+            margin-bottom: 8px;
+        }
+
+        .sub-menu li a {
+            display: block;
+            padding: 12px 16px;
+            background: #f1f5f9;
+            color: #1e293b;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .sub-menu li a:active {
+            background: #e2e8f0;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>📦 POS & Inventory Management</h1>
+    <!-- Top Header Navigation Bar -->
+    <header class="app-header">
+        <div class="app-title">
+            📊 <span>Stock Management System</span>
+        </div>
+        <button class="btn-settings-menu" id="btnOpenSettings">
+            ⚙️ Settings Menu
+        </button>
     </header>
 
+    <!-- Main Content Container -->
     <main class="container">
-        <!-- ទីតាំងបង្ហាញ Section របស់ Purchase Order និង Modules ផ្សេងៗ -->
-        <div id="welcomeView" style="display: none;"></div>
+
+        <!-- 1. Dashboard View (ចាស់ដែលបាត់) -->
+        <div id="welcomeView">
+            <div class="dashboard-grid">
+                <div class="dash-card">
+                    <span>TOTAL PRODUCTS</span>
+                    <h2 id="dashTotalProducts">0</h2>
+                </div>
+                <div class="dash-card green">
+                    <span>ACTIVE DAY</span>
+                    <h2>Day 1</h2>
+                </div>
+            </div>
+        </div>
+
     </main>
 
-    <!-- Import JavaScript Modules -->
+    <!-- Settings / Navigation Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>⚙️ Navigation Menu</h4>
+                <button class="btn-close-modal" id="btnCloseSettings">&times;</button>
+            </div>
+            <ul class="sub-menu">
+                <li><a href="#" id="navDashboard">📊 Dashboard</a></li>
+                <li><a href="#" id="navStockInOut">🔄 Stock In / Stock Out</a></li>
+                <li><a href="#" id="navWasteStock">🗑️ Waste Stock</a></li>
+                <li><a href="#" id="btnNavPurchaseOrder">🛒 Purchases (Recommended Order)</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Scripts Integration -->
+    <script>
+        // Modal Event Handlers
+        const btnOpenSettings = document.getElementById('btnOpenSettings');
+        const btnCloseSettings = document.getElementById('btnCloseSettings');
+        const settingsModal = document.getElementById('settingsModal');
+        const welcomeView = document.getElementById('welcomeView');
+
+        btnOpenSettings.addEventListener('click', () => {
+            settingsModal.style.display = 'flex';
+        });
+
+        btnCloseSettings.addEventListener('click', () => {
+            settingsModal.style.display = 'none';
+        });
+
+        document.getElementById('navDashboard').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelectorAll('.section-card').forEach(s => s.classList.remove('active'));
+            welcomeView.style.display = 'block';
+            settingsModal.style.display = 'none';
+        });
+    </script>
+
+    <!-- JavaScript Modules -->
     <script src="stock-in-out.js"></script>
     <script src="waste-stock.js"></script>
     <script src="purchase-order.js"></script>

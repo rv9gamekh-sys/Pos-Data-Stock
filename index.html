@@ -2,257 +2,340 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
+    <!-- Meta tag ធ្វើឱ្យ fit លើ iPhone ដោយមិនបាត់ UI ដើម -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Stock Management System</title>
-    
+    <!-- CSS ដើម និង Plugin CSS -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="stock-in-out.css?v=1.1">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #0f172a;
-            color: #334155;
-            padding: 0;
-            margin: 0;
-            min-height: 100vh;
-        }
-
-        /* Top Header Navigation */
-        .app-header {
-            background-color: #0f172a;
-            color: #ffffff;
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #1e293b;
-        }
-
-        .app-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
-            font-weight: 700;
-        }
-
-        .btn-settings-menu {
-            background: #1e293b;
-            color: #94a3b8;
-            border: 1px solid #334155;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        /* Main Container */
-        main.container {
-            padding: 16px;
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #f8fafc;
-            min-height: calc(100vh - 65px);
-        }
-
-        .section-card {
-            display: none;
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
-        }
-
-        .section-card.active {
-            display: block;
-        }
-
-        /* Dashboard Summary Cards */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .dash-card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 16px;
-            border: 1px solid #e2e8f0;
-            border-left: 4px solid #0284c7;
-        }
-
-        .dash-card.green {
-            border-left-color: #10b981;
-        }
-
-        .dash-card span {
-            font-size: 11px;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-        }
-
-        .dash-card h2 {
-            font-size: 1.5rem;
-            color: #0f172a;
-            margin-top: 4px;
-        }
-
-        /* Modal / Settings Navigation Dropdown */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(4px);
-            z-index: 999;
-            justify-content: center;
-            align-items: flex-start;
-            padding-top: 60px;
-        }
-
-        .modal-content {
-            background: #ffffff;
-            width: 90%;
-            max-width: 400px;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .modal-header h4 {
-            font-size: 1.1rem;
-            color: #0f172a;
-        }
-
-        .btn-close-modal {
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: #64748b;
-            cursor: pointer;
-        }
-
-        .sub-menu {
-            list-style: none;
-        }
-
-        .sub-menu li {
-            margin-bottom: 8px;
-        }
-
-        .sub-menu li a {
-            display: block;
-            padding: 12px 16px;
-            background: #f1f5f9;
-            color: #1e293b;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .sub-menu li a:active {
-            background: #e2e8f0;
+        /* CSS បន្ថែមសម្រាប់ Mobile Responsive ការពារកុំឱ្យបាក់ Table ដើម */
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 10px !important;
+            }
+            .data-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+            .form-row {
+                flex-direction: column !important;
+            }
+            .form-group {
+                width: 100% !important;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Top Header Navigation Bar -->
-    <header class="app-header">
-        <div class="app-title">
-            📊 <span>Stock Management System</span>
+    <!-- Header Navigation Bar -->
+    <header class="navbar">
+        <div class="nav-brand" id="btnDashboardHome" style="cursor: pointer;">
+            <h2>📊 Stock Management System</h2>
         </div>
-        <button class="btn-settings-menu" id="btnOpenSettings">
-            ⚙️ Settings Menu
-        </button>
+        <button id="btnOpenSettings" class="btn-settings">⚙️ Settings Menu</button>
     </header>
 
-    <!-- Main Content Container -->
-    <main class="container">
-
-        <!-- 1. Dashboard View (ចាស់ដែលបាត់) -->
-        <div id="welcomeView">
-            <div class="dashboard-grid">
-                <div class="dash-card">
-                    <span>TOTAL PRODUCTS</span>
-                    <h2 id="dashTotalProducts">0</h2>
-                </div>
-                <div class="dash-card green">
-                    <span>ACTIVE DAY</span>
-                    <h2>Day 1</h2>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Settings / Navigation Modal -->
-    <div class="modal" id="settingsModal">
+    <!-- Modal Popup / Menu Settings -->
+    <div id="settingsModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h4>⚙️ Navigation Menu</h4>
-                <button class="btn-close-modal" id="btnCloseSettings">&times;</button>
+            <span class="close-btn" id="btnCloseSettings">&times;</span>
+            <h3>⚙️ Settings & Controls</h3>
+            
+            <div class="menu-group">
+                <div class="menu-title">
+                    <span>📦 Stock Controls</span>
+                </div>
+                <ul class="sub-menu">
+                    <li><a href="#" id="btnDashboardNav">🏠 Dashboard (Home)</a></li>
+                    <li><a href="#" id="btnProductList">Product List</a></li>
+                    <li><a href="#" id="btnDailyStock">Daily Stock</a></li> 
+                    <li><a href="#" id="btnStockInOutNav">Stock In/Out</a></li>
+                    <li><a href="#" id="btnWasteStockNav">Waste Stocks</a></li>
+                    <li><a href="#" id="btnNavPurchaseOrder">Purchase</a></li>
+                </ul>
             </div>
-            <ul class="sub-menu">
-                <li><a href="#" id="navDashboard">📊 Dashboard</a></li>
-                <li><a href="#" id="navStockInOut">🔄 Stock In / Stock Out</a></li>
-                <li><a href="#" id="navWasteStock">🗑️ Waste Stock</a></li>
-                <li><a href="#" id="btnNavPurchaseOrder">🛒 Purchases (Recommended Order)</a></li>
-            </ul>
+
+            <!-- Menu ផ្នែក Reports -->
+            <div class="menu-group" style="margin-top: 15px;">
+                <div class="menu-title">
+                    <span>📊 Reports</span>
+                </div>
+                <ul class="sub-menu">
+                    <li><a href="#" id="btnWeeklyReport">Weekly Report</a></li>
+                    <li><a href="#" id="btnMonthlyReport">Monthly Report</a></li>
+                </ul>
+            </div>
         </div>
     </div>
 
-    <!-- Scripts Integration -->
-    <script>
-        // Modal Event Handlers
-        const btnOpenSettings = document.getElementById('btnOpenSettings');
-        const btnCloseSettings = document.getElementById('btnCloseSettings');
-        const settingsModal = document.getElementById('settingsModal');
-        const welcomeView = document.getElementById('welcomeView');
+    <main class="container">
 
-        btnOpenSettings.addEventListener('click', () => {
-            settingsModal.style.display = 'flex';
-        });
+        <!-- ផ្ទាំងស្វាគមន៍ (Dashboard Home) -->
+        <div id="welcomeView" class="welcome-card">
+            <h3>👋 សូមស្វាគមន៍មកកាន់ប្រព័ន្ធគ្រប់គ្រងស្តុក (Dashboard)</h3>
+            <p>សូមចុចលើ <strong>⚙️ Settings Menu</strong> នៅខាងលើ រួចជ្រើសរើសមុខងារដែលចង់ប្រើប្រាស់។</p>
+        </div>
 
-        btnCloseSettings.addEventListener('click', () => {
-            settingsModal.style.display = 'none';
-        });
+        <!-- ==================== SECTION 1: PRODUCT LIST ==================== -->
+        <section id="productManagement" class="section-card">
+            <div class="dashboard-cards">
+                <div class="card card-blue">
+                    <h4>Total Products</h4>
+                    <p id="totalProductsCount">0</p>
+                </div>
+                <div class="card card-orange">
+                    <h4>Categories</h4>
+                    <p>7 Categories</p>
+                </div>
+            </div>
 
-        document.getElementById('navDashboard').addEventListener('click', (e) => {
-            e.preventDefault();
-            document.querySelectorAll('.section-card').forEach(s => s.classList.remove('active'));
-            welcomeView.style.display = 'block';
-            settingsModal.style.display = 'none';
-        });
-    </script>
+            <h3 id="formTitle">📝 បន្ថែម/កែប្រែ មុខទំនិញ (Product Management)</h3>
+            
+            <form id="productForm" class="form-card">
+                <input type="hidden" id="editIndex" value="">
 
-    <!-- JavaScript Modules -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pName">Product Name:</label>
+                        <input type="text" id="pName" placeholder="ឈ្មោះទំនិញ" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pCategory">Category:</label>
+                        <select id="pCategory" required>
+                            <option value="">-- ជ្រើសរើស --</option>
+                            <option value="Milk">Milk</option>
+                            <option value="Powder">Powder</option>
+                            <option value="Tea Leaves">Tea Leaves</option>
+                            <option value="Sauce">Sauce</option>
+                            <option value="Fruit">Fruit</option>
+                            <option value="Soft Drinks">Soft Drinks</option>
+                            <option value="Packaging">Packaging</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pUnit">Unit:</label>
+                        <input type="text" id="pUnit" placeholder="ឧ. Can, Kg, Pack" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pPrice">Price ($):</label>
+                        <input type="number" step="0.01" id="pPrice" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group btn-align">
+                        <button type="submit" id="btnSubmitProduct" class="btn-primary">➕ បន្ថែម Product</button>
+                        <button type="button" id="btnCancelEdit" class="btn-cancel" style="display:none;">បោះបង់</button>
+                    </div>
+                </div>
+            </form>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nº</th>
+                        <th>Items Name</th>
+                        <th>Category</th>
+                        <th>Unit</th>
+                        <th>Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="productTableBody">
+                    <!-- JS Render -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- ==================== SECTION 2: DAILY STOCK ==================== -->
+        <section id="dailyStockManagement" class="section-card">
+            <div class="dashboard-cards">
+                <div class="card card-blue">
+                    <h4>Total Products</h4>
+                    <p id="dsTotalProductsCount">0</p>
+                </div>
+                <div class="card card-green">
+                    <h4>Active Day</h4>
+                    <p id="currentActiveDay">Day 1</p>
+                </div>
+            </div>
+
+            <h3>📅 គ្រប់គ្រងស្តុកប្រចាំថ្ងៃ (Daily Stock)</h3>
+
+            <div class="filter-card">
+                <div class="form-group">
+                    <label for="dsDay">ជ្រើសរើស ថ្ងៃ (Day):</label>
+                    <select id="dsDay"></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="dsCategory">ជ្រើសរើស ប្រភេទ (Category):</label>
+                    <select id="dsCategory">
+                        <option value="All">ទាំងអស់ (All)</option>
+                        <option value="Milk">Milk</option>
+                        <option value="Powder">Powder</option>
+                        <option value="Tea Leaves">Tea Leaves</option>
+                        <option value="Sauce">Sauce</option>
+                        <option value="Fruit">Fruit</option>
+                        <option value="Soft Drinks">Soft Drinks</option>
+                        <option value="Packaging">Packaging</option>
+                    </select>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="btnExportExcel" type="button" class="btn-export">📥 Export ជា Excel</button>
+                </div>
+            </div>
+
+            <form id="dailyStockForm">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nº</th>
+                            <th>Items Name</th>
+                            <th>Category</th>
+                            <th>Unit</th>
+                            <th>Open Stock</th>
+                            <th>Rest Stock</th>
+                            <th>Remark</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dailyStockTableBody">
+                        <!-- JS Render -->
+                    </tbody>
+                </table>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary btn-save">💾 រក្សាទុក (Save Daily Stock)</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ==================== SECTION 3: STOCK IN / STOCK OUT ==================== -->
+        <section id="stockInOutSection" class="section-card">
+            <h3>📥📤 គ្រប់គ្រងស្តុក ចូល/ចេញ (Stock In / Stock Out)</h3>
+            
+            <div class="tab-container">
+                <button type="button" class="tab-btn active" id="btnTabIn">📥 នាំចូល (Stock In)</button>
+                <button type="button" class="tab-btn" id="btnTabOut">📤 នាំចេញ (Stock Out)</button>
+            </div>
+
+            <form id="stockInOutForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sioProductSelect">ជ្រើសរើស ទំនិញ:</label>
+                        <select id="sioProductSelect" required>
+                            <option value="">-- ជ្រើសរើស Product --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="sioQty">ចំនួន (Qty):</label>
+                        <input type="number" id="sioQty" step="any" placeholder="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sioNote">ចំណាំ/មូលហេតុ:</label>
+                        <input type="text" id="sioNote" placeholder="ឧ. ទិញថែម ឬ រំលស់ចេញ/ខូច">
+                    </div>
+                    <div class="form-group btn-align">
+                        <button type="submit" id="btnSubmitSIO" class="btn-primary" style="background-color: #2563eb;">📥 រក្សាទុក Stock In</button>
+                    </div>
+                </div>
+            </form>
+
+            <h4 style="margin-top: 20px; color: #334155;">📋 ប្រវត្តិប្រតិបត្តិការ (Transaction Logs)</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nº</th>
+                        <th>កាលបរិច្ឆេទ</th>
+                        <th>ប្រភេទ</th>
+                        <th>ឈ្មោះទំនិញ</th>
+                        <th>ចំនួន</th>
+                        <th>ចំណាំ</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="sioLogsTableBody">
+                    <!-- JS Render -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Container សម្រាប់ចាក់ Waste Stock Module -->
+        <section id="wasteStockSection" class="section-card"></section>
+
+        <!-- ==================== SECTION 4: REPORTS ==================== -->
+        <section id="reportsManagement" class="section-card">
+            <div class="dashboard-cards">
+                <div class="card card-blue">
+                    <h4>Report Type</h4>
+                    <p id="reportTitleType">Weekly Report</p>
+                </div>
+            </div>
+
+            <h3 id="reportHeader">📈 របាយការណ៍សង្ខេប (Reports)</h3>
+
+            <div class="filter-card">
+                <div class="form-group" id="groupWeekSelect">
+                    <label for="reportWeek">ជ្រើសរើស សប្តាហ៍ (Week):</label>
+                    <select id="reportWeek">
+                        <option value="1">Week 1 (Day 1 - Day 7)</option>
+                        <option value="2">Week 2 (Day 8 - Day 14)</option>
+                        <option value="3">Week 3 (Day 15 - Day 21)</option>
+                        <option value="4">Week 4 (Day 22 - Day 28)</option>
+                        <option value="5">Week 5 (Day 29 - Day 31)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="groupMonthSelect" style="display: none;">
+                    <label for="reportMonth">ជ្រើសរើស ខែ (Month):</label>
+                    <select id="reportMonth">
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" class="btn-export">📥 Print / Export Report</button>
+                </div>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nº</th>
+                        <th>Items Name</th>
+                        <th>Category</th>
+                        <th>Unit</th>
+                        <th>Total Used</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center;">ជ្រើសរើស Filter ដើម្បីមើលទិន្នន័យរបាយការណ៍</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+
+    <!-- JS Scripts -->
+    <script src="script.js"></script>
     <script src="stock-in-out.js"></script>
     <script src="waste-stock.js"></script>
     <script src="purchase-order.js"></script>

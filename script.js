@@ -191,9 +191,10 @@ if (productForm) {
 function saveProductToGoogleSheets(productData) {
     if (!API_URL || API_URL.includes("សូមដាក់")) return;
 
+    // ផ្ញើ លេខរៀង (rowNum) ជំនួស ID វិញ
     const payload = {
         action: "addProduct",
-        id: productData.id,
+        rowNum: products.length, // លេខរៀង (N)
         name: productData.name,
         category: productData.category,
         unit: productData.unit,

@@ -1,5 +1,5 @@
 // 🔗 ដាក់ Google Apps Script Web App URL របស់បងនៅទីនេះ
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyNMJKKfVCdIfsEYvFcpW6SPqjO92HgwMkAV6wn1ElGJVN4JjZpfZdaByi5ilP3kUBuTA/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyWFR0YkAkicfjFaIwHsAS9z7JKnAP9W3ABI2sb1Awt0LxDZ5urZjxKKsI_83Y_XMG87A/exec";
 
 // Local Data Stores
 let products = JSON.parse(localStorage.getItem('products')) || [];
@@ -87,7 +87,7 @@ function updateDashboard() {
 }
 
 // ==========================================
-// Product Management (Sync Google Sheet)
+// Product Management (Sync + Delete Google Sheet)
 // ==========================================
 function renderProducts() {
     const tbody = document.getElementById('tblProductList');
@@ -172,15 +172,18 @@ function setupProductModalEvents() {
             populateSelectDropdowns();
             updateDashboard();
 
-            // 2. ផ្ញើទិន្នន័យ Sync ទៅ Google Sheets (Drive)
-            if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== "" && GOOGLE_SCRIPT_URL.startsWith("http")) {
+            // 2. ផ្ញើទិន្នន័យ Sync ទៅ Google Sheets
+            if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL.startsWith("http")) {
                 fetch(GOOGLE_SCRIPT_URL, {
                     method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8",
+                    },
                     body: JSON.stringify(newProduct)
                 })
-                .then(() => {
+                .then(res => res.text())
+                .then(data => {
+                    console.log("Google Sheet Sync Response:", data);
                     alert("✅ រក្សាទុកក្នុង Local និង Sync ទៅ Google Sheet រួចរាល់!");
                 })
                 .catch(err => {
@@ -217,12 +220,41 @@ function editProduct(idx) {
 }
 
 function deleteProduct(idx) {
-    if (confirm("តើអ្នកប្រាកដថាចង់លុប Item នេះ?")) {
+    const prodToDelete = products[idx];
+    if (!prodToDelete) return;
+
+    if (confirm(`តើអ្នកប្រាកដថាចង់លុប "${prodToDelete.name}" នេះ?`)) {
+        // 1. លុបចេញពី LocalStorage
         products.splice(idx, 1);
         localStorage.setItem('products', JSON.stringify(products));
+
+        // Update UI
         renderProducts();
         populateSelectDropdowns();
         updateDashboard();
+
+        // 2. ផ្ញើសំណើទៅលុបក្នុង Google Sheet
+        if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL.startsWith("http")) {
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8",
+                },
+                body: JSON.stringify({
+                    action: "deleteProduct",
+                    name: prodToDelete.name
+                })
+            })
+            .then(res => res.text())
+            .then(data => {
+                console.log("Delete Response:", data);
+                alert("✅ បានលុបចេញពី Local និង Google Sheet រួចរាល់!");
+            })
+            .catch(err => {
+                console.error("Error deleting from Google Sheet:", err);
+                alert("⚠️ បានលុបក្នុង Local ប៉ុន្តែមានបញ្ហាពេលលុបក្នុង Google Sheet");
+            });
+        }
     }
 }
 

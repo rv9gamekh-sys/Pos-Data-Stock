@@ -1,5 +1,5 @@
 // 🔗 ដាក់ Google Apps Script Web App URL របស់បងនៅទីនេះ
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFq6nU9gDXZrNycbnMEtiAn581j1KKwaYDTZy4fiHUVhd5MIwDavm9nu91VWJaJSPiGg/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyNMJKKfVCdIfsEYvFcpW6SPqjO92HgwMkAV6wn1ElGJVN4JjZpfZdaByi5ilP3kUBuTA/exec";
 
 // Local Data Stores
 let products = JSON.parse(localStorage.getItem('products')) || [];

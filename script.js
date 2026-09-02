@@ -1,6 +1,4 @@
-// ==========================================
-// 1. Initial State & Configuration
-// ==========================================
+// Local Data Stores
 let products = JSON.parse(localStorage.getItem('products')) || [];
 let dailyStocks = JSON.parse(localStorage.getItem('dailyStocks')) || [];
 let stockTransactions = JSON.parse(localStorage.getItem('stockTransactions')) || [];
@@ -15,6 +13,12 @@ document.addEventListener("DOMContentLoaded", function () {
     renderWasteTable();
     updateDashboard();
 
+    // Set Default Month on Purchases
+    const now = new Date();
+    const currentMonth = now.toISOString().slice(0, 7);
+    document.getElementById('purchaseMonth').value = currentMonth;
+    renderPurchasesTable();
+
     // Auto-fill saved URL in settings
     const savedUrl = localStorage.getItem('webAppUrl') || '';
     if (document.getElementById('settingAppUrl')) {
@@ -22,13 +26,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-// Get Current Google Apps Script API URL
 function getApiUrl() {
     return localStorage.getItem('webAppUrl') || '';
 }
 
 // ==========================================
-// 2. Navigation Logic
+// Navigation & Toggle Menu Logic
 // ==========================================
 function setupNavigation() {
     const navItems = document.querySelectorAll('.nav-item');
@@ -46,15 +49,21 @@ function setupNavigation() {
             else if (target === 'btnNavDailyStock') { showView('viewDailyStock'); renderDailyStockTable(); }
             else if (target === 'btnNavStockInOut') { showView('viewStockInOut'); renderStockInOutTable(); }
             else if (target === 'btnNavWasteStock') { showView('viewWasteStock'); renderWasteTable(); }
-            else if (target === 'btnNavPurchases') showView('viewPurchases');
+            else if (target === 'btnNavPurchases') { showView('viewPurchases'); renderPurchasesTable(); }
             else if (target === 'btnNavWeeklyReport') showView('viewWeeklyReport');
             else if (target === 'btnNavMonthlyReport') showView('viewMonthlyReport');
         });
     });
 
-    // Modal Control Settings
-    document.getElementById('btnOpenSettings').onclick = () => document.getElementById('settingsModal').style.display = 'flex';
-    document.getElementById('btnCloseSettings').onclick = () => document.getElementById('settingsModal').style.display = 'none';
+    // ⚙️ 1. ចុច Settings ទើបលោត Menu និង Modal ឡើងមក
+    document.getElementById('btnOpenSettings').onclick = () => {
+        document.getElementById('settingsMenuContainer').style.display = 'block'; // បង្ហាញ Menu
+        document.getElementById('settingsModal').style.display = 'flex'; // បើក Modal
+    };
+    
+    document.getElementById('btnCloseSettings').onclick = () => {
+        document.getElementById('settingsModal').style.display = 'none';
+    };
 }
 
 function showView(viewId) {
@@ -77,7 +86,7 @@ function updateDashboard() {
 }
 
 // ==========================================
-// 3. Product Management
+// Product Management
 // ==========================================
 function renderProducts() {
     const tbody = document.getElementById('tblProductList');
@@ -100,7 +109,7 @@ function renderProducts() {
     });
 }
 
-function openProductModal(type) {
+function openProductModal() {
     document.getElementById('modalTitle').innerText = "Add Item";
     document.getElementById('productModal').style.display = 'flex';
 }
@@ -176,7 +185,7 @@ function deleteProduct(idx) {
 }
 
 // ==========================================
-// 4. Daily Stock
+// Daily Stock & Stock In/Out
 // ==========================================
 function renderDailyStockTable() {
     const tbody = document.getElementById('tblDailyStock');
@@ -217,9 +226,6 @@ document.getElementById('btnSaveDailyStock').onclick = function () {
     alert("✅ រក្សាទុក Daily Stock រួចរាល់!");
 };
 
-// ==========================================
-// 5. Stock In / Out & Waste
-// ==========================================
 document.getElementById('btnAddStockInOut').onclick = function () {
     const item = document.getElementById('sioItemSelect').value;
     const type = document.getElementById('sioTypeSelect').value;
@@ -300,7 +306,49 @@ function renderWasteTable() {
 }
 
 // ==========================================
-// ⚙️ Settings Management Logic (Clean)
+// 🛒 2. Purchases Order (Filter Day & Month)
+// ==========================================
+document.getElementById('btnFilterPurchases').onclick = () => {
+    renderPurchasesTable();
+};
+
+function renderPurchasesTable() {
+    const selectedMonth = document.getElementById('purchaseMonth').value;
+    const selectedDay = String(document.getElementById('purchaseDay').value).padStart(2, '0');
+    
+    if (!selectedMonth || !selectedDay) return;
+
+    const targetDate = `${selectedMonth}-${selectedDay}`; // Formats: YYYY-MM-DD
+    const tbody = document.getElementById('tblPurchases');
+    tbody.innerHTML = '';
+
+    products.forEach((prod, idx) => {
+        // គណនា Stock In រហូតដល់ថ្ងៃជ្រើសរើស
+        const totalIn = stockTransactions
+            .filter(t => t.itemName === prod.name && t.type === 'IN' && t.date <= targetDate)
+            .reduce((sum, t) => sum + Number(t.qty), 0);
+
+        // គណនា Stock Out រហូតដល់ថ្ងៃជ្រើសរើស
+        const totalOut = stockTransactions
+            .filter(t => t.itemName === prod.name && t.type === 'OUT' && t.date <= targetDate)
+            .reduce((sum, t) => sum + Number(t.qty), 0);
+
+        const currentStock = totalIn - totalOut;
+        const recommendedQty = currentStock < 5 ? (10 - currentStock) : 0; // ឧទាហរណ៍ Threshold < 5
+
+        tbody.innerHTML += `
+            <tr>
+                <td>${idx + 1}</td>
+                <td><strong>${prod.name}</strong></td>
+                <td>${currentStock > 0 ? currentStock : 0}</td>
+                <td><span style="color: ${recommendedQty > 0 ? 'red' : 'green'}; font-weight: bold;">${recommendedQty}</span></td>
+            </tr>
+        `;
+    });
+}
+
+// ==========================================
+// Settings Actions
 // ==========================================
 document.getElementById('btnSaveApiUrl').onclick = () => {
     const url = document.getElementById('settingAppUrl').value.trim();

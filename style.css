@@ -217,3 +217,90 @@ th {
 .close-btn { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #888; }
 .modal-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; }
 .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: #444; }
+/* ==========================================
+   MOBILE RESPONSIVE STYLES (សម្រាប់ទូរស័ព្ទដៃ)
+   ========================================== */
+
+/* 1. សម្រួល Layout ដើមឱ្យបត់បែនតាមអេក្រង់ */
+@media screen and (max-width: 768px) {
+
+    /* កាត់បន្ថយ Margin/Padding ជុំវិញអេក្រង់ */
+    body {
+        padding: 8px !important;
+        font-size: 14px;
+    }
+
+    .container, .main-content, .view-section {
+        padding: 10px !important;
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    /* 2. សម្រួល Sidebar / Navigation លើ Mobile */
+    .sidebar, nav {
+        width: 100% !important;
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 15px;
+    }
+
+    .nav-item {
+        flex: 1 1 calc(50% - 10px); /* បែងចែកជា ២ ជួរក្នុងមួយជួរដេក */
+        text-align: center;
+        padding: 8px 5px !important;
+        font-size: 13px !important;
+    }
+
+    /* 3. ដោះស្រាយបញ្ហាតារាង (Table) កុំឱ្យរញ៉េរញ៉ៃ ឬហៀរអេក្រង់ */
+    .table-responsive, table {
+        display: block;
+        width: 100% !important;
+        overflow-x: auto; /* អនុញ្ញាតឱ្យ Scroll ទៅខាងស្ដាំបានប្រសិនបើតារាងវែង */
+        white-space: nowrap; /* មិនឱ្យអក្សរធ្លាក់ជួររញ៉េរញ៉ៃ */
+        -webkit-overflow-scrolling: touch;
+    }
+
+    th, td {
+        padding: 8px 10px !important;
+        font-size: 13px !important;
+    }
+
+    /* 4. សម្រួល Form, Input និង Button ឱ្យធំស្រួលចុច (Touch Friendly) */
+    .form-control, select, input[type="text"], input[type="number"], input[type="date"] {
+        width: 100% !important;
+        height: 42px !important; /* បន្ថែមទំហំឱ្យស្រួលចុចលើ Touch Screen */
+        font-size: 14px !important;
+        box-sizing: border-box;
+        margin-bottom: 8px;
+    }
+
+    .btn {
+        width: 100%; /* ឱ្យ Button រត់ពេញបណ្តោយអេក្រង់លើ Mobile */
+        padding: 10px !important;
+        font-size: 14px !important;
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+
+    /* 5. សម្រួល Dashboard Cards ឱ្យរៀបជួរឈរស្អាត */
+    .dashboard-cards, .card-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .card {
+        width: 100% !important;
+        margin-bottom: 10px;
+    }
+
+    /* 6. សម្រួល Pop-up Modal ឱ្យពេញអេក្រង់ទូរស័ព្ទ */
+    .modal-content {
+        width: 95% !important;
+        max-width: 100% !important;
+        padding: 15px !important;
+        margin: auto;
+    }
+}

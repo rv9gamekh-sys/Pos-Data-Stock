@@ -1,24 +1,34 @@
 // ==========================================
-// 1. Google Apps Script Configuration
+// 1. Initial State & Configuration
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbyNllXOn4sI1K29sB2R1O6vInzKj_Q5kYf7vK1YI0kR-vNqG4WpC9Y_yJk0J1Z3j3w/exec"; // សូម Paste URL របស់បងទីនេះ
-
-// Data Stores
 let products = JSON.parse(localStorage.getItem('products')) || [];
 let dailyStocks = JSON.parse(localStorage.getItem('dailyStocks')) || [];
 let stockTransactions = JSON.parse(localStorage.getItem('stockTransactions')) || [];
 let wasteStocks = JSON.parse(localStorage.getItem('wasteStocks')) || [];
 
-// DOM Loaded Initializer
 document.addEventListener("DOMContentLoaded", function () {
     setupNavigation();
     renderProducts();
     populateSelectDropdowns();
     renderDailyStockTable();
+    renderStockInOutTable();
+    renderWasteTable();
+    updateDashboard();
+
+    // Auto-fill saved URL in settings
+    const savedUrl = localStorage.getItem('webAppUrl') || '';
+    if (document.getElementById('settingAppUrl')) {
+        document.getElementById('settingAppUrl').value = savedUrl;
+    }
 });
 
+// Get Current Google Apps Script API URL
+function getApiUrl() {
+    return localStorage.getItem('webAppUrl') || '';
+}
+
 // ==========================================
-// 2. Navigation Control
+// 2. Navigation Logic
 // ==========================================
 function setupNavigation() {
     const navItems = document.querySelectorAll('.nav-item');
@@ -31,11 +41,11 @@ function setupNavigation() {
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
 
             const target = this.id;
-            if (target === 'btnHome') showView('viewHome');
+            if (target === 'btnHome') { showView('viewHome'); updateDashboard(); }
             else if (target === 'btnNavProductList') { showView('viewProductList'); renderProducts(); }
             else if (target === 'btnNavDailyStock') { showView('viewDailyStock'); renderDailyStockTable(); }
-            else if (target === 'btnNavStockInOut') { showView('viewStockInOut'); renderStockInOut(); }
-            else if (target === 'btnNavWasteStock') { showView('viewWasteStock'); renderWasteStock(); }
+            else if (target === 'btnNavStockInOut') { showView('viewStockInOut'); renderStockInOutTable(); }
+            else if (target === 'btnNavWasteStock') { showView('viewWasteStock'); renderWasteTable(); }
             else if (target === 'btnNavPurchases') showView('viewPurchases');
             else if (target === 'btnNavWeeklyReport') showView('viewWeeklyReport');
             else if (target === 'btnNavMonthlyReport') showView('viewMonthlyReport');
@@ -51,8 +61,23 @@ function showView(viewId) {
     document.getElementById(viewId).classList.add('active');
 }
 
+function updateDashboard() {
+    document.getElementById('dashTotalItems').innerText = products.length;
+
+    const today = new Date().toISOString().split('T')[0];
+    const todayIn = stockTransactions
+        .filter(t => t.type === 'IN' && t.date === today)
+        .reduce((sum, t) => sum + Number(t.qty), 0);
+    document.getElementById('dashStockIn').innerText = todayIn;
+
+    const todayWaste = wasteStocks
+        .filter(w => w.date === today)
+        .reduce((sum, w) => sum + Number(w.qty), 0);
+    document.getElementById('dashWaste').innerText = todayWaste;
+}
+
 // ==========================================
-// 3. Product Management Logic
+// 3. Product Management
 // ==========================================
 function renderProducts() {
     const tbody = document.getElementById('tblProductList');
@@ -65,7 +90,7 @@ function renderProducts() {
                 <td><strong>${prod.name}</strong></td>
                 <td>${prod.category}</td>
                 <td>${prod.unit}</td>
-                <td>$${parseFloat(prod.price).toFixed(2)}</td>
+                <td>$${parseFloat(prod.price || 0).toFixed(2)}</td>
                 <td>
                     <button class="btn btn-secondary" onclick="editProduct(${idx})">Edit</button>
                     <button class="btn btn-danger" onclick="deleteProduct(${idx})">Delete</button>
@@ -76,17 +101,19 @@ function renderProducts() {
 }
 
 function openProductModal(type) {
-    document.getElementById('modalTitle').innerText = "Add " + type.toUpperCase();
+    document.getElementById('modalTitle').innerText = "Add Item";
     document.getElementById('productModal').style.display = 'flex';
 }
 
 function closeProductModal() {
     document.getElementById('productModal').style.display = 'none';
     document.getElementById('productForm').reset();
+    document.getElementById('editItemIndex').value = '';
 }
 
 document.getElementById('productForm').onsubmit = function (e) {
     e.preventDefault();
+    const editIdx = document.getElementById('editItemIndex').value;
     const newProduct = {
         name: document.getElementById('pName').value,
         category: document.getElementById('pCategory').value,
@@ -94,21 +121,36 @@ document.getElementById('productForm').onsubmit = function (e) {
         price: document.getElementById('pPrice').value
     };
 
-    products.push(newProduct);
+    if (editIdx !== "") {
+        products[editIdx] = newProduct;
+    } else {
+        products.push(newProduct);
+        saveProductToGoogleSheets(newProduct);
+    }
+
     localStorage.setItem('products', JSON.stringify(products));
-
-    // Save to Google Sheet
-    saveProductToGoogleSheets(newProduct);
-
     closeProductModal();
     renderProducts();
     populateSelectDropdowns();
+    updateDashboard();
 };
 
-function saveProductToGoogleSheets(productData) {
-    if (!API_URL) return;
+function editProduct(idx) {
+    const prod = products[idx];
+    document.getElementById('pName').value = prod.name;
+    document.getElementById('pCategory').value = prod.category;
+    document.getElementById('pUnit').value = prod.unit;
+    document.getElementById('pPrice').value = prod.price;
+    document.getElementById('editItemIndex').value = idx;
+    document.getElementById('modalTitle').innerText = "Edit Item";
+    document.getElementById('productModal').style.display = 'flex';
+}
 
-    fetch(API_URL, {
+function saveProductToGoogleSheets(productData) {
+    const url = getApiUrl();
+    if (!url) return;
+
+    fetch(url, {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
@@ -119,20 +161,22 @@ function saveProductToGoogleSheets(productData) {
             unit: productData.unit,
             price: productData.price
         })
-    }).then(() => alert("✅ រក្សាទុកចូល Google Sheet ជោគជ័យ!"))
+    }).then(() => alert("✅ បានបន្ថែម Product ចូល Google Sheet រួចរាល់!"))
       .catch(err => console.error(err));
 }
 
 function deleteProduct(idx) {
-    if (confirm("តើអ្នកប្រាកដថាចង់លុបបែកនេះ?")) {
+    if (confirm("តើអ្នកប្រាកដថាចង់លុប Item នេះ?")) {
         products.splice(idx, 1);
         localStorage.setItem('products', JSON.stringify(products));
         renderProducts();
+        populateSelectDropdowns();
+        updateDashboard();
     }
 }
 
 // ==========================================
-// 4. Daily Stock Logic
+// 4. Daily Stock
 // ==========================================
 function renderDailyStockTable() {
     const tbody = document.getElementById('tblDailyStock');
@@ -142,24 +186,165 @@ function renderDailyStockTable() {
         tbody.innerHTML += `
             <tr>
                 <td><strong>${prod.name}</strong></td>
-                <td><input type="number" class="form-control open-stock" data-idx="${idx}" placeholder="Open Qty"></td>
-                <td><input type="number" class="form-control rest-stock" data-idx="${idx}" placeholder="Rest Qty"></td>
-                <td><input type="text" class="form-control remark-stock" data-idx="${idx}" placeholder="Remark"></td>
+                <td><input type="number" class="form-control" id="open_${idx}" placeholder="Open Qty"></td>
+                <td><input type="number" class="form-control" id="rest_${idx}" placeholder="Rest Qty"></td>
+                <td><input type="text" class="form-control" id="remark_${idx}" placeholder="Remark"></td>
             </tr>
         `;
     });
 }
 
 document.getElementById('btnSaveDailyStock').onclick = function () {
-    alert("✅ រក្សាទុក Daily Stock ជោគជ័យ!");
+    const today = document.getElementById('dailyStockDate').value || new Date().toISOString().split('T')[0];
+
+    products.forEach((prod, idx) => {
+        const openVal = document.getElementById(`open_${idx}`).value;
+        const restVal = document.getElementById(`rest_${idx}`).value;
+        const remarkVal = document.getElementById(`remark_${idx}`).value;
+
+        if (openVal !== "" || restVal !== "") {
+            dailyStocks.push({
+                date: today,
+                itemName: prod.name,
+                openStock: openVal,
+                restStock: restVal,
+                remark: remarkVal
+            });
+        }
+    });
+
+    localStorage.setItem('dailyStocks', JSON.stringify(dailyStocks));
+    alert("✅ រក្សាទុក Daily Stock រួចរាល់!");
 };
 
 // ==========================================
-// Helper Functions
+// 5. Stock In / Out & Waste
 // ==========================================
+document.getElementById('btnAddStockInOut').onclick = function () {
+    const item = document.getElementById('sioItemSelect').value;
+    const type = document.getElementById('sioTypeSelect').value;
+    const qty = document.getElementById('sioQty').value;
+    const remark = document.getElementById('sioRemark').value;
+
+    if (!item || !qty) {
+        alert("សូមជ្រើសរើស Item និងបញ្ចូលចំនួន Qty!");
+        return;
+    }
+
+    stockTransactions.push({
+        date: new Date().toISOString().split('T')[0],
+        itemName: item,
+        type: type,
+        qty: qty,
+        remark: remark
+    });
+
+    localStorage.setItem('stockTransactions', JSON.stringify(stockTransactions));
+    renderStockInOutTable();
+    updateDashboard();
+
+    document.getElementById('sioQty').value = '';
+    document.getElementById('sioRemark').value = '';
+};
+
+function renderStockInOutTable() {
+    const tbody = document.getElementById('tblStockInOut');
+    tbody.innerHTML = '';
+
+    stockTransactions.forEach(t => {
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${t.itemName}</strong></td>
+                <td><span style="color: ${t.type === 'IN' ? 'green' : 'red'}; font-weight: bold;">${t.type}</span></td>
+                <td>${t.qty}</td>
+                <td>${t.remark}</td>
+            </tr>
+        `;
+    });
+}
+
+document.getElementById('btnAddWaste').onclick = function () {
+    const item = document.getElementById('wasteItemSelect').value;
+    const date = document.getElementById('wasteDate').value || new Date().toISOString().split('T')[0];
+    const qty = document.getElementById('wasteQty').value;
+    const remark = document.getElementById('wasteRemark').value;
+
+    if (!item || !qty) {
+        alert("សូមជ្រើសរើស Item និងបញ្ចូលចំនួន Waste Qty!");
+        return;
+    }
+
+    wasteStocks.push({ date, itemName: item, qty, remark });
+    localStorage.setItem('wasteStocks', JSON.stringify(wasteStocks));
+    renderWasteTable();
+    updateDashboard();
+
+    document.getElementById('wasteQty').value = '';
+    document.getElementById('wasteRemark').value = '';
+};
+
+function renderWasteTable() {
+    const tbody = document.getElementById('tblWasteStock');
+    tbody.innerHTML = '';
+
+    wasteStocks.forEach((w, idx) => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${idx + 1}</td>
+                <td><strong>${w.itemName}</strong></td>
+                <td><span style="color: red; font-weight: bold;">${w.qty}</span></td>
+                <td>${w.remark}</td>
+            </tr>
+        `;
+    });
+}
+
+// ==========================================
+// ⚙️ Settings Management Logic (Clean)
+// ==========================================
+document.getElementById('btnSaveApiUrl').onclick = () => {
+    const url = document.getElementById('settingAppUrl').value.trim();
+    localStorage.setItem('webAppUrl', url);
+    alert('✅ បានរក្សាទុក Google Web App URL រួចរាល់!');
+};
+
+document.getElementById('btnAddCategory').onclick = () => {
+    const input = document.getElementById('newCategoryInput');
+    const val = input.value.trim();
+    if (val) {
+        let categories = JSON.parse(localStorage.getItem('categories')) || ['Fruit', 'Powder', 'Syrup', 'Milk'];
+        if (!categories.includes(val)) categories.push(val);
+        localStorage.setItem('categories', JSON.stringify(categories));
+        input.value = '';
+        alert(`✅ បានបន្ថែម Category: ${val}`);
+    }
+};
+
+document.getElementById('btnAddUnit').onclick = () => {
+    const input = document.getElementById('newUnitInput');
+    const val = input.value.trim();
+    if (val) {
+        let units = JSON.parse(localStorage.getItem('units')) || ['kg', 'g', 'can', 'bottle', 'pack'];
+        if (!units.includes(val)) units.push(val);
+        localStorage.setItem('units', JSON.stringify(units));
+        input.value = '';
+        alert(`✅ បានបន្ថែម Unit: ${val}`);
+    }
+};
+
+document.getElementById('btnResetData').onclick = () => {
+    if (confirm('⚠️ តើអ្នកប្រាកដថាចង់ Reset ទិន្នន័យ Stock ទាំងអស់ឡើងវិញ?')) {
+        localStorage.clear();
+        location.reload();
+    }
+};
+
 function populateSelectDropdowns() {
     const sioSelect = document.getElementById('sioItemSelect');
     const wasteSelect = document.getElementById('wasteItemSelect');
+
+    if (!sioSelect || !wasteSelect) return;
+
     sioSelect.innerHTML = '<option value="">Select Item</option>';
     wasteSelect.innerHTML = '<option value="">Select Item</option>';
 
@@ -167,8 +352,4 @@ function populateSelectDropdowns() {
         sioSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`;
         wasteSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`;
     });
-}
-
-function exportToExcel(tableID, filename = '') {
-    alert("📥 កំពុង Export File " + filename + ".xls");
 }

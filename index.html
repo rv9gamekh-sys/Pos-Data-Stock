@@ -9,7 +9,6 @@
 <body>
 
     <div class="app-container">
-        <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="logo">
                 <h2>☕ Cafe Stock</h2>
@@ -33,10 +32,8 @@
             </div>
         </aside>
 
-        <!-- Main Content Area -->
         <main class="main-content">
 
-            <!-- 1. HOME VIEW -->
             <section id="viewHome" class="view-section active">
                 <div class="header">
                     <h1>🏠 Dashboard Overview</h1>
@@ -57,14 +54,11 @@
                 </div>
             </section>
 
-            <!-- 2. PRODUCT LIST -->
             <section id="viewProductList" class="view-section">
                 <div class="header">
                     <h1>📋 Product List</h1>
                     <div class="button-group">
                         <button class="btn btn-primary" onclick="openProductModal('item')">+ Add Item</button>
-                        <button class="btn btn-secondary" onclick="openProductModal('category')">+ Add Category</button>
-                        <button class="btn btn-secondary" onclick="openProductModal('unit')">+ Add Unit</button>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -80,13 +74,11 @@
                             </tr>
                         </thead>
                         <tbody id="tblProductList">
-                            <!-- Data populated by JS -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- 3. DAILY STOCK -->
             <section id="viewDailyStock" class="view-section">
                 <div class="header">
                     <h1>📅 Daily Stock</h1>
@@ -108,8 +100,7 @@
                             </tr>
                         </thead>
                         <tbody id="tblDailyStock">
-                            <!-- Data populated by JS -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
                 <div class="footer-actions">
@@ -117,7 +108,6 @@
                 </div>
             </section>
 
-            <!-- 4. STOCK IN/OUT -->
             <section id="viewStockInOut" class="view-section">
                 <div class="header">
                     <h1>🔄 Stock In / Out</h1>
@@ -145,13 +135,11 @@
                             </tr>
                         </thead>
                         <tbody id="tblStockInOut">
-                            <!-- Data populated by JS -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- 5. WASTE STOCK -->
             <section id="viewWasteStock" class="view-section">
                 <div class="header">
                     <h1>🗑️ Waste Stock</h1>
@@ -176,13 +164,11 @@
                             </tr>
                         </thead>
                         <tbody id="tblWasteStock">
-                            <!-- Data populated by JS -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- 6. PURCHASES -->
             <section id="viewPurchases" class="view-section">
                 <div class="header">
                     <h1>🛒 Recommended Purchases Order</h1>
@@ -202,13 +188,11 @@
                             </tr>
                         </thead>
                         <tbody id="tblPurchases">
-                            <!-- Data populated by JS -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- 7. WEEKLY REPORT -->
             <section id="viewWeeklyReport" class="view-section">
                 <div class="header">
                     <h1>📈 Weekly Report</h1>
@@ -220,7 +204,7 @@
                             <option value="3">Week 3</option>
                             <option value="4">Week 4</option>
                         </select>
-                        <button class="btn btn-excel" onclick="exportToExcel('tblWeeklyReport', 'Weekly_Report')">📥 Export as Excel</button>
+                        <button class="btn btn-excel" onclick="alert('Exporting Excel...')">📥 Export as Excel</button>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -236,19 +220,17 @@
                             </tr>
                         </thead>
                         <tbody id="tblWeeklyReport">
-                            <!-- Data populated by JS -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- 8. MONTHLY REPORT -->
             <section id="viewMonthlyReport" class="view-section">
                 <div class="header">
                     <h1>🗓️ Monthly Report</h1>
                     <div class="filter-group">
                         <input type="month" id="monthlyMonth" class="form-control">
-                        <button class="btn btn-excel" onclick="exportToExcel('tblMonthlyReport', 'Monthly_Report')">📥 Export as Excel</button>
+                        <button class="btn btn-excel" onclick="alert('Exporting Excel...')">📥 Export as Excel</button>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -267,8 +249,7 @@
                             </tr>
                         </thead>
                         <tbody id="tblMonthlyReport">
-                            <!-- Data populated by JS -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </section>
@@ -276,40 +257,80 @@
         </main>
     </div>
 
-    <!-- ADD/EDIT PRODUCT MODAL -->
-    <div id="productModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeProductModal()">&times;</span>
-            <h2 id="modalTitle">Add Item</h2>
-            <form id="productForm">
-                <input type="hidden" id="editItemIndex">
-                <div class="form-group">
-                    <label>Item Name:</label>
-                    <input type="text" id="pName" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Category:</label>
-                    <input type="text" id="pCategory" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Unit:</label>
-                    <input type="text" id="pUnit" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Price ($):</label>
-                    <input type="number" step="0.01" id="pPrice" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 15px;">Save Item</button>
-            </form>
+    <div id="productModal" class="modal-overlay" style="display: none;">
+        <div class="modal-card" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Item</h2>
+                <button class="close-btn" onclick="closeProductModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <input type="hidden" id="editItemIndex">
+                    <div class="form-group">
+                        <label>Item Name:</label>
+                        <input type="text" id="pName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category:</label>
+                        <input type="text" id="pCategory" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Unit:</label>
+                        <input type="text" id="pUnit" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Price ($):</label>
+                        <input type="number" step="0.01" id="pPrice" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 15px;">Save Item</button>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- SETTINGS MODAL -->
-    <div id="settingsModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" id="btnCloseSettings">&times;</span>
-            <h2>⚙️ System Settings</h2>
-            <p style="margin-top: 10px; color: #666;">ប្រព័ន្ធភ្ជាប់ទៅកាន់ Google Sheets រួចរាល់។</p>
+    <div id="settingsModal" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>⚙️ System Settings</h2>
+                <button id="btnCloseSettings" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-box">
+                    <h3>🔗 Google Sheet Sync</h3>
+                    <p class="section-desc">បញ្ចូល Web App URL សម្រាប់ Sync ទិន្នន័យ</p>
+                    <div class="form-group">
+                        <input type="url" id="settingAppUrl" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
+                    </div>
+                    <button id="btnSaveApiUrl" class="btn btn-primary">💾 Save Connection</button>
+                </div>
+
+                <div class="settings-box">
+                    <h3>🏷️ System Configuration</h3>
+                    <div class="grid-2-col">
+                        <div class="form-group">
+                            <label>Add New Category</label>
+                            <div class="input-inline">
+                                <input type="text" id="newCategoryInput" class="form-control" placeholder="Category">
+                                <button id="btnAddCategory" class="btn btn-secondary">+ Add</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Add New Unit</label>
+                            <div class="input-inline">
+                                <input type="text" id="newUnitInput" class="form-control" placeholder="Unit">
+                                <button id="btnAddUnit" class="btn btn-secondary">+ Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-box danger-box">
+                    <h3>🗑️ Reset System Data</h3>
+                    <p class="section-desc">សម្អាតទិន្នន័យចាស់ៗទាំងអស់ក្នុង LocalStorage</p>
+                    <button id="btnResetData" class="btn btn-danger">Reset All Stock Data</button>
+                </div>
+            </div>
         </div>
     </div>
 

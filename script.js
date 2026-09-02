@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     renderStockInOutTable();
     renderWasteTable();
     updateDashboard();
+    setupProductModalEvents();
 
     // Set Default Month on Purchases
     const now = new Date();
@@ -45,7 +46,6 @@ function setupNavigation() {
         });
     });
 
-    // ⚙️ ចុច Settings គ្រាន់តែ បង្ហាញ/លាក់ Sidebar Menu ប៉ុណ្ណោះ
     document.getElementById('btnOpenSettings').onclick = () => {
         const menu = document.getElementById('settingsMenuContainer');
         if (menu.style.display === 'none' || menu.style.display === '') {
@@ -76,23 +76,29 @@ function updateDashboard() {
 }
 
 // ==========================================
-// Product Management
+// Product Management (FIXED & FULLY WORKING)
 // ==========================================
 function renderProducts() {
     const tbody = document.getElementById('tblProductList');
+    if (!tbody) return;
     tbody.innerHTML = '';
+
+    if (products.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#888;">មិនទាន់មានទំនិញនៅឡើយទេ</td></tr>`;
+        return;
+    }
 
     products.forEach((prod, idx) => {
         tbody.innerHTML += `
             <tr>
                 <td>${idx + 1}</td>
                 <td><strong>${prod.name}</strong></td>
-                <td>${prod.category}</td>
-                <td>${prod.unit}</td>
+                <td>${prod.category || '-'}</td>
+                <td>${prod.unit || '-'}</td>
                 <td>$${parseFloat(prod.price || 0).toFixed(2)}</td>
                 <td>
-                    <button class="btn btn-secondary" onclick="editProduct(${idx})">Edit</button>
-                    <button class="btn btn-danger" onclick="deleteProduct(${idx})">Delete</button>
+                    <button type="button" class="btn btn-secondary" onclick="editProduct(${idx})">Edit</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteProduct(${idx})">Delete</button>
                 </td>
             </tr>
         `;
@@ -101,45 +107,66 @@ function renderProducts() {
 
 function openProductModal() {
     document.getElementById('modalTitle').innerText = "Add Item";
+    document.getElementById('productForm').reset();
+    document.getElementById('editItemIndex').value = "";
     document.getElementById('productModal').style.display = 'flex';
 }
 
 function closeProductModal() {
     document.getElementById('productModal').style.display = 'none';
     document.getElementById('productForm').reset();
-    document.getElementById('editItemIndex').value = '';
+    document.getElementById('editItemIndex').value = "";
 }
 
-document.getElementById('productForm').onsubmit = function (e) {
-    e.preventDefault();
-    const editIdx = document.getElementById('editItemIndex').value;
-    const newProduct = {
-        name: document.getElementById('pName').value,
-        category: document.getElementById('pCategory').value,
-        unit: document.getElementById('pUnit').value,
-        price: document.getElementById('pPrice').value
-    };
+function setupProductModalEvents() {
+    const btnClose = document.getElementById('btnCloseProductModal');
+    if (btnClose) btnClose.onclick = closeProductModal;
 
-    if (editIdx !== "") {
-        products[editIdx] = newProduct;
-    } else {
-        products.push(newProduct);
+    const modalOverlay = document.getElementById('productModal');
+    if (modalOverlay) {
+        modalOverlay.onclick = function (e) {
+            if (e.target === modalOverlay) closeProductModal();
+        };
     }
 
-    localStorage.setItem('products', JSON.stringify(products));
-    closeProductModal();
-    renderProducts();
-    populateSelectDropdowns();
-    updateDashboard();
-};
+    const productForm = document.getElementById('productForm');
+    if (productForm) {
+        productForm.onsubmit = function (e) {
+            e.preventDefault();
+
+            const editIdx = document.getElementById('editItemIndex').value;
+            const newProduct = {
+                name: document.getElementById('pName').value.trim(),
+                category: document.getElementById('pCategory').value.trim(),
+                unit: document.getElementById('pUnit').value.trim(),
+                price: parseFloat(document.getElementById('pPrice').value) || 0
+            };
+
+            if (editIdx !== "" && editIdx !== null) {
+                products[editIdx] = newProduct;
+            } else {
+                products.push(newProduct);
+            }
+
+            localStorage.setItem('products', JSON.stringify(products));
+            closeProductModal();
+            renderProducts();
+            populateSelectDropdowns();
+            updateDashboard();
+        };
+    }
+}
 
 function editProduct(idx) {
     const prod = products[idx];
+    if (!prod) return;
+
     document.getElementById('pName').value = prod.name;
     document.getElementById('pCategory').value = prod.category;
     document.getElementById('pUnit').value = prod.unit;
     document.getElementById('pPrice').value = prod.price;
     document.getElementById('editItemIndex').value = idx;
+    
     document.getElementById('modalTitle').innerText = "Edit Item";
     document.getElementById('productModal').style.display = 'flex';
 }
@@ -159,6 +186,7 @@ function deleteProduct(idx) {
 // ==========================================
 function renderDailyStockTable() {
     const tbody = document.getElementById('tblDailyStock');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     products.forEach((prod, idx) => {
@@ -225,6 +253,7 @@ document.getElementById('btnAddStockInOut').onclick = function () {
 
 function renderStockInOutTable() {
     const tbody = document.getElementById('tblStockInOut');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     stockTransactions.forEach(t => {
@@ -261,6 +290,7 @@ document.getElementById('btnAddWaste').onclick = function () {
 
 function renderWasteTable() {
     const tbody = document.getElementById('tblWasteStock');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     wasteStocks.forEach((w, idx) => {
@@ -276,7 +306,7 @@ function renderWasteTable() {
 }
 
 // ==========================================
-// Purchases Order (Filter Day & Month)
+// Purchases Order
 // ==========================================
 document.getElementById('btnFilterPurchases').onclick = () => {
     renderPurchasesTable();
@@ -290,6 +320,7 @@ function renderPurchasesTable() {
 
     const targetDate = `${selectedMonth}-${selectedDay}`;
     const tbody = document.getElementById('tblPurchases');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     products.forEach((prod, idx) => {

@@ -2,342 +2,317 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <!-- Meta tag ធ្វើឱ្យ fit លើ iPhone ដោយមិនបាត់ UI ដើម -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Management System</title>
-    <!-- CSS ដើម និង Plugin CSS -->
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="stock-in-out.css?v=1.1">
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-    <style>
-        /* CSS បន្ថែមសម្រាប់ Mobile Responsive ការពារកុំឱ្យបាក់ Table ដើម */
-        @media screen and (max-width: 768px) {
-            .container {
-                padding: 10px !important;
-            }
-            .data-table {
-                display: block;
-                overflow-x: auto;
-                white-space: nowrap;
-                -webkit-overflow-scrolling: touch;
-            }
-            .form-row {
-                flex-direction: column !important;
-            }
-            .form-group {
-                width: 100% !important;
-            }
-        }
-    </style>
 </head>
 <body>
 
-    <!-- Header Navigation Bar -->
-    <header class="navbar">
-        <div class="nav-brand" id="btnDashboardHome" style="cursor: pointer;">
-            <h2>📊 Stock Management System</h2>
-        </div>
-        <button id="btnOpenSettings" class="btn-settings">⚙️ Settings Menu</button>
-    </header>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>☕ Cafe Stock</h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" id="btnHome" class="nav-item active">🏠 Home</a>
+                
+                <div class="nav-group-title">Stock Management</div>
+                <a href="#" id="btnNavProductList" class="nav-item">📋 Product List</a>
+                <a href="#" id="btnNavDailyStock" class="nav-item">📅 Daily Stock</a>
+                <a href="#" id="btnNavStockInOut" class="nav-item">🔄 Stock In/Out</a>
+                <a href="#" id="btnNavWasteStock" class="nav-item">🗑️ Waste Stock</a>
+                <a href="#" id="btnNavPurchases" class="nav-item">🛒 Purchases</a>
 
-    <!-- Modal Popup / Menu Settings -->
-    <div id="settingsModal" class="modal">
+                <div class="nav-group-title">Report</div>
+                <a href="#" id="btnNavWeeklyReport" class="nav-item">📈 Weekly Report</a>
+                <a href="#" id="btnNavMonthlyReport" class="nav-item">🗓️ Monthly Report</a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="btnOpenSettings" class="btn-settings">⚙️ Settings</button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+
+            <!-- 1. HOME VIEW -->
+            <section id="viewHome" class="view-section active">
+                <div class="header">
+                    <h1>🏠 Dashboard Overview</h1>
+                </div>
+                <div class="dashboard-cards">
+                    <div class="card">
+                        <h3>Total Items</h3>
+                        <p id="dashTotalItems">0</p>
+                    </div>
+                    <div class="card">
+                        <h3>Today Stock In</h3>
+                        <p id="dashStockIn">0</p>
+                    </div>
+                    <div class="card">
+                        <h3>Today Waste</h3>
+                        <p id="dashWaste">0</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. PRODUCT LIST -->
+            <section id="viewProductList" class="view-section">
+                <div class="header">
+                    <h1>📋 Product List</h1>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="openProductModal('item')">+ Add Item</button>
+                        <button class="btn btn-secondary" onclick="openProductModal('category')">+ Add Category</button>
+                        <button class="btn btn-secondary" onclick="openProductModal('unit')">+ Add Unit</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>N</th>
+                                <th>Items Name</th>
+                                <th>Category</th>
+                                <th>Unit</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblProductList">
+                            <!-- Data populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 3. DAILY STOCK -->
+            <section id="viewDailyStock" class="view-section">
+                <div class="header">
+                    <h1>📅 Daily Stock</h1>
+                    <div class="filter-group">
+                        <input type="date" id="dailyStockDate" class="form-control">
+                        <select id="dailyCategoryFilter" class="form-control">
+                            <option value="ALL">All Categories</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Items Name</th>
+                                <th>B.Open (Open Stock)</th>
+                                <th>B.Rest (Rest Stock)</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblDailyStock">
+                            <!-- Data populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="footer-actions">
+                    <button id="btnSaveDailyStock" class="btn btn-success">💾 Save Daily Stock</button>
+                </div>
+            </section>
+
+            <!-- 4. STOCK IN/OUT -->
+            <section id="viewStockInOut" class="view-section">
+                <div class="header">
+                    <h1>🔄 Stock In / Out</h1>
+                </div>
+                <div class="form-card">
+                    <div class="form-row">
+                        <select id="sioItemSelect" class="form-control"><option value="">Select Item</option></select>
+                        <select id="sioTypeSelect" class="form-control">
+                            <option value="IN">Stock IN</option>
+                            <option value="OUT">Stock OUT</option>
+                        </select>
+                        <input type="number" id="sioQty" placeholder="Qty" class="form-control">
+                        <input type="text" id="sioRemark" placeholder="Remark" class="form-control">
+                        <button id="btnAddStockInOut" class="btn btn-primary">Submit</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Items Name</th>
+                                <th>Stock In / Out</th>
+                                <th>Qty</th>
+                                <th>Remark</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblStockInOut">
+                            <!-- Data populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 5. WASTE STOCK -->
+            <section id="viewWasteStock" class="view-section">
+                <div class="header">
+                    <h1>🗑️ Waste Stock</h1>
+                </div>
+                <div class="form-card">
+                    <div class="form-row">
+                        <select id="wasteItemSelect" class="form-control"><option value="">Select Item</option></select>
+                        <input type="date" id="wasteDate" class="form-control">
+                        <input type="number" id="wasteQty" placeholder="Input Waste Qty" class="form-control">
+                        <input type="text" id="wasteRemark" placeholder="Remark" class="form-control">
+                        <button id="btnAddWaste" class="btn btn-danger">Save Waste</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>N</th>
+                                <th>Items Name</th>
+                                <th>Waste</th>
+                                <th>Remark</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblWasteStock">
+                            <!-- Data populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 6. PURCHASES -->
+            <section id="viewPurchases" class="view-section">
+                <div class="header">
+                    <h1>🛒 Recommended Purchases Order</h1>
+                    <div class="filter-group">
+                        <label>Select Day (1-31):</label>
+                        <input type="number" id="purchaseDay" min="1" max="31" value="1" class="form-control" style="width: 100px;">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>N</th>
+                                <th>Items Name</th>
+                                <th>Current Stock</th>
+                                <th>Recommended Order Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblPurchases">
+                            <!-- Data populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 7. WEEKLY REPORT -->
+            <section id="viewWeeklyReport" class="view-section">
+                <div class="header">
+                    <h1>📈 Weekly Report</h1>
+                    <div class="filter-group">
+                        <input type="month" id="weeklyMonth" class="form-control">
+                        <select id="weeklyWeek" class="form-control">
+                            <option value="1">Week 1</option>
+                            <option value="2">Week 2</option>
+                            <option value="3">Week 3</option>
+                            <option value="4">Week 4</option>
+                        </select>
+                        <button class="btn btn-excel" onclick="exportToExcel('tblWeeklyReport', 'Weekly_Report')">📥 Export as Excel</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>N</th>
+                                <th>Items Name</th>
+                                <th>Category</th>
+                                <th>Used Stock</th>
+                                <th>Waste Stock</th>
+                                <th>Remark</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblWeeklyReport">
+                            <!-- Data populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 8. MONTHLY REPORT -->
+            <section id="viewMonthlyReport" class="view-section">
+                <div class="header">
+                    <h1>🗓️ Monthly Report</h1>
+                    <div class="filter-group">
+                        <input type="month" id="monthlyMonth" class="form-control">
+                        <button class="btn btn-excel" onclick="exportToExcel('tblMonthlyReport', 'Monthly_Report')">📥 Export as Excel</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>N</th>
+                                <th>Items Name</th>
+                                <th>Category</th>
+                                <th>Unit</th>
+                                <th>Stock In</th>
+                                <th>Stock Out</th>
+                                <th>Used Stock</th>
+                                <th>Waste Stock</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblMonthlyReport">
+                            <!-- Data populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ADD/EDIT PRODUCT MODAL -->
+    <div id="productModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" id="btnCloseSettings">&times;</span>
-            <h3>⚙️ Settings & Controls</h3>
-            
-            <div class="menu-group">
-                <div class="menu-title">
-                    <span>📦 Stock Controls</span>
+            <span class="close-btn" onclick="closeProductModal()">&times;</span>
+            <h2 id="modalTitle">Add Item</h2>
+            <form id="productForm">
+                <input type="hidden" id="editItemIndex">
+                <div class="form-group">
+                    <label>Item Name:</label>
+                    <input type="text" id="pName" class="form-control" required>
                 </div>
-                <ul class="sub-menu">
-                    <li><a href="#" id="btnDashboardNav">🏠 Dashboard (Home)</a></li>
-                    <li><a href="#" id="btnProductList">Product List</a></li>
-                    <li><a href="#" id="btnDailyStock">Daily Stock</a></li> 
-                    <li><a href="#" id="btnStockInOutNav">Stock In/Out</a></li>
-                    <li><a href="#" id="btnWasteStockNav">Waste Stocks</a></li>
-                    <li><a href="#" id="btnNavPurchaseOrder">Purchase</a></li>
-                </ul>
-            </div>
-
-            <!-- Menu ផ្នែក Reports -->
-            <div class="menu-group" style="margin-top: 15px;">
-                <div class="menu-title">
-                    <span>📊 Reports</span>
+                <div class="form-group">
+                    <label>Category:</label>
+                    <input type="text" id="pCategory" class="form-control" required>
                 </div>
-                <ul class="sub-menu">
-                    <li><a href="#" id="btnWeeklyReport">Weekly Report</a></li>
-                    <li><a href="#" id="btnMonthlyReport">Monthly Report</a></li>
-                </ul>
-            </div>
+                <div class="form-group">
+                    <label>Unit:</label>
+                    <input type="text" id="pUnit" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Price ($):</label>
+                    <input type="number" step="0.01" id="pPrice" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 15px;">Save Item</button>
+            </form>
         </div>
     </div>
 
-    <main class="container">
-
-        <!-- ផ្ទាំងស្វាគមន៍ (Dashboard Home) -->
-        <div id="welcomeView" class="welcome-card">
-            <h3>👋 សូមស្វាគមន៍មកកាន់ប្រព័ន្ធគ្រប់គ្រងស្តុក (Dashboard)</h3>
-            <p>សូមចុចលើ <strong>⚙️ Settings Menu</strong> នៅខាងលើ រួចជ្រើសរើសមុខងារដែលចង់ប្រើប្រាស់។</p>
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="btnCloseSettings">&times;</span>
+            <h2>⚙️ System Settings</h2>
+            <p style="margin-top: 10px; color: #666;">ប្រព័ន្ធភ្ជាប់ទៅកាន់ Google Sheets រួចរាល់។</p>
         </div>
+    </div>
 
-        <!-- ==================== SECTION 1: PRODUCT LIST ==================== -->
-        <section id="productManagement" class="section-card">
-            <div class="dashboard-cards">
-                <div class="card card-blue">
-                    <h4>Total Products</h4>
-                    <p id="totalProductsCount">0</p>
-                </div>
-                <div class="card card-orange">
-                    <h4>Categories</h4>
-                    <p>7 Categories</p>
-                </div>
-            </div>
-
-            <h3 id="formTitle">📝 បន្ថែម/កែប្រែ មុខទំនិញ (Product Management)</h3>
-            
-            <form id="productForm" class="form-card">
-                <input type="hidden" id="editIndex" value="">
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="pName">Product Name:</label>
-                        <input type="text" id="pName" placeholder="ឈ្មោះទំនិញ" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="pCategory">Category:</label>
-                        <select id="pCategory" required>
-                            <option value="">-- ជ្រើសរើស --</option>
-                            <option value="Milk">Milk</option>
-                            <option value="Powder">Powder</option>
-                            <option value="Tea Leaves">Tea Leaves</option>
-                            <option value="Sauce">Sauce</option>
-                            <option value="Fruit">Fruit</option>
-                            <option value="Soft Drinks">Soft Drinks</option>
-                            <option value="Packaging">Packaging</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="pUnit">Unit:</label>
-                        <input type="text" id="pUnit" placeholder="ឧ. Can, Kg, Pack" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="pPrice">Price ($):</label>
-                        <input type="number" step="0.01" id="pPrice" placeholder="0.00" required>
-                    </div>
-                    <div class="form-group btn-align">
-                        <button type="submit" id="btnSubmitProduct" class="btn-primary">➕ បន្ថែម Product</button>
-                        <button type="button" id="btnCancelEdit" class="btn-cancel" style="display:none;">បោះបង់</button>
-                    </div>
-                </div>
-            </form>
-
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Nº</th>
-                        <th>Items Name</th>
-                        <th>Category</th>
-                        <th>Unit</th>
-                        <th>Price</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="productTableBody">
-                    <!-- JS Render -->
-                </tbody>
-            </table>
-        </section>
-
-        <!-- ==================== SECTION 2: DAILY STOCK ==================== -->
-        <section id="dailyStockManagement" class="section-card">
-            <div class="dashboard-cards">
-                <div class="card card-blue">
-                    <h4>Total Products</h4>
-                    <p id="dsTotalProductsCount">0</p>
-                </div>
-                <div class="card card-green">
-                    <h4>Active Day</h4>
-                    <p id="currentActiveDay">Day 1</p>
-                </div>
-            </div>
-
-            <h3>📅 គ្រប់គ្រងស្តុកប្រចាំថ្ងៃ (Daily Stock)</h3>
-
-            <div class="filter-card">
-                <div class="form-group">
-                    <label for="dsDay">ជ្រើសរើស ថ្ងៃ (Day):</label>
-                    <select id="dsDay"></select>
-                </div>
-
-                <div class="form-group">
-                    <label for="dsCategory">ជ្រើសរើស ប្រភេទ (Category):</label>
-                    <select id="dsCategory">
-                        <option value="All">ទាំងអស់ (All)</option>
-                        <option value="Milk">Milk</option>
-                        <option value="Powder">Powder</option>
-                        <option value="Tea Leaves">Tea Leaves</option>
-                        <option value="Sauce">Sauce</option>
-                        <option value="Fruit">Fruit</option>
-                        <option value="Soft Drinks">Soft Drinks</option>
-                        <option value="Packaging">Packaging</option>
-                    </select>
-                </div>
-
-                <div class="action-buttons">
-                    <button id="btnExportExcel" type="button" class="btn-export">📥 Export ជា Excel</button>
-                </div>
-            </div>
-
-            <form id="dailyStockForm">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Nº</th>
-                            <th>Items Name</th>
-                            <th>Category</th>
-                            <th>Unit</th>
-                            <th>Open Stock</th>
-                            <th>Rest Stock</th>
-                            <th>Remark</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dailyStockTableBody">
-                        <!-- JS Render -->
-                    </tbody>
-                </table>
-                
-                <div class="form-actions">
-                    <button type="submit" class="btn-primary btn-save">💾 រក្សាទុក (Save Daily Stock)</button>
-                </div>
-            </form>
-        </section>
-
-        <!-- ==================== SECTION 3: STOCK IN / STOCK OUT ==================== -->
-        <section id="stockInOutSection" class="section-card">
-            <h3>📥📤 គ្រប់គ្រងស្តុក ចូល/ចេញ (Stock In / Stock Out)</h3>
-            
-            <div class="tab-container">
-                <button type="button" class="tab-btn active" id="btnTabIn">📥 នាំចូល (Stock In)</button>
-                <button type="button" class="tab-btn" id="btnTabOut">📤 នាំចេញ (Stock Out)</button>
-            </div>
-
-            <form id="stockInOutForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="sioProductSelect">ជ្រើសរើស ទំនិញ:</label>
-                        <select id="sioProductSelect" required>
-                            <option value="">-- ជ្រើសរើស Product --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="sioQty">ចំនួន (Qty):</label>
-                        <input type="number" id="sioQty" step="any" placeholder="0" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="sioNote">ចំណាំ/មូលហេតុ:</label>
-                        <input type="text" id="sioNote" placeholder="ឧ. ទិញថែម ឬ រំលស់ចេញ/ខូច">
-                    </div>
-                    <div class="form-group btn-align">
-                        <button type="submit" id="btnSubmitSIO" class="btn-primary" style="background-color: #2563eb;">📥 រក្សាទុក Stock In</button>
-                    </div>
-                </div>
-            </form>
-
-            <h4 style="margin-top: 20px; color: #334155;">📋 ប្រវត្តិប្រតិបត្តិការ (Transaction Logs)</h4>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Nº</th>
-                        <th>កាលបរិច្ឆេទ</th>
-                        <th>ប្រភេទ</th>
-                        <th>ឈ្មោះទំនិញ</th>
-                        <th>ចំនួន</th>
-                        <th>ចំណាំ</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="sioLogsTableBody">
-                    <!-- JS Render -->
-                </tbody>
-            </table>
-        </section>
-
-        <!-- Container សម្រាប់ចាក់ Waste Stock Module -->
-        <section id="wasteStockSection" class="section-card"></section>
-
-        <!-- ==================== SECTION 4: REPORTS ==================== -->
-        <section id="reportsManagement" class="section-card">
-            <div class="dashboard-cards">
-                <div class="card card-blue">
-                    <h4>Report Type</h4>
-                    <p id="reportTitleType">Weekly Report</p>
-                </div>
-            </div>
-
-            <h3 id="reportHeader">📈 របាយការណ៍សង្ខេប (Reports)</h3>
-
-            <div class="filter-card">
-                <div class="form-group" id="groupWeekSelect">
-                    <label for="reportWeek">ជ្រើសរើស សប្តាហ៍ (Week):</label>
-                    <select id="reportWeek">
-                        <option value="1">Week 1 (Day 1 - Day 7)</option>
-                        <option value="2">Week 2 (Day 8 - Day 14)</option>
-                        <option value="3">Week 3 (Day 15 - Day 21)</option>
-                        <option value="4">Week 4 (Day 22 - Day 28)</option>
-                        <option value="5">Week 5 (Day 29 - Day 31)</option>
-                    </select>
-                </div>
-
-                <div class="form-group" id="groupMonthSelect" style="display: none;">
-                    <label for="reportMonth">ជ្រើសរើស ខែ (Month):</label>
-                    <select id="reportMonth">
-                        <option value="1">January</option>
-                        <option value="2">February</option>
-                        <option value="3">March</option>
-                        <option value="4">April</option>
-                        <option value="5">May</option>
-                        <option value="6">June</option>
-                        <option value="7">July</option>
-                        <option value="8">August</option>
-                        <option value="9">September</option>
-                        <option value="10">October</option>
-                        <option value="11">November</option>
-                        <option value="12">December</option>
-                    </select>
-                </div>
-
-                <div class="action-buttons">
-                    <button type="button" class="btn-export">📥 Print / Export Report</button>
-                </div>
-            </div>
-
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Nº</th>
-                        <th>Items Name</th>
-                        <th>Category</th>
-                        <th>Unit</th>
-                        <th>Total Used</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="reportTableBody">
-                    <tr>
-                        <td colspan="6" style="text-align: center;">ជ្រើសរើស Filter ដើម្បីមើលទិន្នន័យរបាយការណ៍</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-    </main>
-
-    <!-- JS Scripts -->
     <script src="script.js"></script>
-    <script src="stock-in-out.js"></script>
-    <script src="waste-stock.js"></script>
-    <script src="purchase-order.js"></script>
 </body>
 </html>

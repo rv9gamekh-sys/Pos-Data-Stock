@@ -18,17 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const currentMonth = now.toISOString().slice(0, 7);
     document.getElementById('purchaseMonth').value = currentMonth;
     renderPurchasesTable();
-
-    // Auto-fill saved URL in settings
-    const savedUrl = localStorage.getItem('webAppUrl') || '';
-    if (document.getElementById('settingAppUrl')) {
-        document.getElementById('settingAppUrl').value = savedUrl;
-    }
 });
-
-function getApiUrl() {
-    return localStorage.getItem('webAppUrl') || '';
-}
 
 // ==========================================
 // Navigation & Toggle Menu Logic
@@ -55,14 +45,14 @@ function setupNavigation() {
         });
     });
 
-    // ⚙️ 1. ចុច Settings ទើបលោត Menu និង Modal ឡើងមក
+    // ⚙️ ចុច Settings គ្រាន់តែ បង្ហាញ/លាក់ Sidebar Menu ប៉ុណ្ណោះ
     document.getElementById('btnOpenSettings').onclick = () => {
-        document.getElementById('settingsMenuContainer').style.display = 'block'; // បង្ហាញ Menu
-        document.getElementById('settingsModal').style.display = 'flex'; // បើក Modal
-    };
-    
-    document.getElementById('btnCloseSettings').onclick = () => {
-        document.getElementById('settingsModal').style.display = 'none';
+        const menu = document.getElementById('settingsMenuContainer');
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'block';
+        } else {
+            menu.style.display = 'none';
+        }
     };
 }
 
@@ -134,7 +124,6 @@ document.getElementById('productForm').onsubmit = function (e) {
         products[editIdx] = newProduct;
     } else {
         products.push(newProduct);
-        saveProductToGoogleSheets(newProduct);
     }
 
     localStorage.setItem('products', JSON.stringify(products));
@@ -153,25 +142,6 @@ function editProduct(idx) {
     document.getElementById('editItemIndex').value = idx;
     document.getElementById('modalTitle').innerText = "Edit Item";
     document.getElementById('productModal').style.display = 'flex';
-}
-
-function saveProductToGoogleSheets(productData) {
-    const url = getApiUrl();
-    if (!url) return;
-
-    fetch(url, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            action: "addProduct",
-            name: productData.name,
-            category: productData.category,
-            unit: productData.unit,
-            price: productData.price
-        })
-    }).then(() => alert("✅ បានបន្ថែម Product ចូល Google Sheet រួចរាល់!"))
-      .catch(err => console.error(err));
 }
 
 function deleteProduct(idx) {
@@ -306,7 +276,7 @@ function renderWasteTable() {
 }
 
 // ==========================================
-// 🛒 2. Purchases Order (Filter Day & Month)
+// Purchases Order (Filter Day & Month)
 // ==========================================
 document.getElementById('btnFilterPurchases').onclick = () => {
     renderPurchasesTable();
@@ -318,23 +288,21 @@ function renderPurchasesTable() {
     
     if (!selectedMonth || !selectedDay) return;
 
-    const targetDate = `${selectedMonth}-${selectedDay}`; // Formats: YYYY-MM-DD
+    const targetDate = `${selectedMonth}-${selectedDay}`;
     const tbody = document.getElementById('tblPurchases');
     tbody.innerHTML = '';
 
     products.forEach((prod, idx) => {
-        // គណនា Stock In រហូតដល់ថ្ងៃជ្រើសរើស
         const totalIn = stockTransactions
             .filter(t => t.itemName === prod.name && t.type === 'IN' && t.date <= targetDate)
             .reduce((sum, t) => sum + Number(t.qty), 0);
 
-        // គណនា Stock Out រហូតដល់ថ្ងៃជ្រើសរើស
         const totalOut = stockTransactions
             .filter(t => t.itemName === prod.name && t.type === 'OUT' && t.date <= targetDate)
             .reduce((sum, t) => sum + Number(t.qty), 0);
 
         const currentStock = totalIn - totalOut;
-        const recommendedQty = currentStock < 5 ? (10 - currentStock) : 0; // ឧទាហរណ៍ Threshold < 5
+        const recommendedQty = currentStock < 5 ? (10 - currentStock) : 0;
 
         tbody.innerHTML += `
             <tr>
@@ -346,46 +314,6 @@ function renderPurchasesTable() {
         `;
     });
 }
-
-// ==========================================
-// Settings Actions
-// ==========================================
-document.getElementById('btnSaveApiUrl').onclick = () => {
-    const url = document.getElementById('settingAppUrl').value.trim();
-    localStorage.setItem('webAppUrl', url);
-    alert('✅ បានរក្សាទុក Google Web App URL រួចរាល់!');
-};
-
-document.getElementById('btnAddCategory').onclick = () => {
-    const input = document.getElementById('newCategoryInput');
-    const val = input.value.trim();
-    if (val) {
-        let categories = JSON.parse(localStorage.getItem('categories')) || ['Fruit', 'Powder', 'Syrup', 'Milk'];
-        if (!categories.includes(val)) categories.push(val);
-        localStorage.setItem('categories', JSON.stringify(categories));
-        input.value = '';
-        alert(`✅ បានបន្ថែម Category: ${val}`);
-    }
-};
-
-document.getElementById('btnAddUnit').onclick = () => {
-    const input = document.getElementById('newUnitInput');
-    const val = input.value.trim();
-    if (val) {
-        let units = JSON.parse(localStorage.getItem('units')) || ['kg', 'g', 'can', 'bottle', 'pack'];
-        if (!units.includes(val)) units.push(val);
-        localStorage.setItem('units', JSON.stringify(units));
-        input.value = '';
-        alert(`✅ បានបន្ថែម Unit: ${val}`);
-    }
-};
-
-document.getElementById('btnResetData').onclick = () => {
-    if (confirm('⚠️ តើអ្នកប្រាកដថាចង់ Reset ទិន្នន័យ Stock ទាំងអស់ឡើងវិញ?')) {
-        localStorage.clear();
-        location.reload();
-    }
-};
 
 function populateSelectDropdowns() {
     const sioSelect = document.getElementById('sioItemSelect');

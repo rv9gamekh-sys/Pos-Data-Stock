@@ -1,7 +1,7 @@
 // ==========================================
 // 1. Google Apps Script Configuration
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbwJdxbfKRpGgtnx3D5wPEKsorVxpH91bQVNil3wGM4m02WhlZfmST6vYHQE72S4uAnhew/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwsUIocikUjoCqhrfVHx1L3T-yYXL5nKP-_jc0OeTre41j0zYdiC3vqN-b9ipZgFManUA/exec";
 
 // ==========================================
 // 2. Data State & Variable Initializations
